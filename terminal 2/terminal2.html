@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html>
+<style>
+    body {
+  font-family: Arial;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.dot {
+  height: 12px;
+  width: 12px;
+  background-color: red;
+  border-radius: 50%;
+  display: inline-block;
+  margin-right: 97%;
+
+}
+
+.container {
+  border: 3px solid #f1f1f1;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+}
+
+.top {
+  padding: 10px;
+  background: #f1f1f1;
+  border-top-left-radius: 4px;
+  border-top-right-radius: 4px;
+}
+
+.content {
+  text-align:left;
+  margin-left:2em;
+  color: #51de00;
+  font-family:monospace;
+}
+#mydiv {
+  position: absolute;
+  z-index: 9;
+  text-align: center;
+  background-color: black;
+  width: 40em;
+  height: 30em;
+}
+
+#mydivheader {
+  padding: 10px;
+  padding-top:2.5px;
+  padding-bottom:2.5px;
+  cursor: move;
+  z-index: 10;
+}
+#dot {
+    cursor: pointer;
+}
+#input:focus {
+    outline:none;
+}
+#run {
+    background-color:black;
+    color:#51de00;
+    border:none;
+    font-family:monospace;
+    cursor: pointer;
+}
+#run:focus {
+    outline:none;
+}
+#output {
+    color:#51de00;
+}
+body {
+    background-image: url("wallpaper.jpg");
+    overflow: hidden;
+}
+.file {
+    padding:0.5em;
+    border: 1px solid #00b5c9;
+    background-color: #00b5c9;
+    border-radius: 1em;
+    margin-left:1em;
+    margin-top:1em;
+    display: block;
+    float: left;
+    color: white;
+    text-align:center;
+}
+
+</style>
+<body>
+
+<div id="mydiv" class="container">
+    <div id ="mydivheader" class="top">
+      <span class="dot" id="dot" onclick="deleteWindow()"></span>
+    </div>
+  
+    <div class="content">
+        <textarea id="input" contenteditable="true" style="background-color: black; border:none; color: #51de00; width: 40em; margin-top:2em; height:1.5em;"></textarea>
+    <button id="run" onclick="command()">run</button>
+    <p id="output"></p>
+    </div>
+  </div>
+
+<script>
+var input = document.getElementById("input");
+input.addEventListener("keyup", function(event) {
+  if (event.keyCode === 13) {
+   event.preventDefault();
+   command(input);
+  }
+});
+
+
+//Make the DIV element draggagle:
+dragElement(document.getElementById("mydiv"));
+function deleteWindow() {
+    var element = document.getElementById("dot");
+    var div = document.getElementById("mydiv");
+    div.remove();
+}
+//DRAGGABLE WINDOW -------------------------------------------------------------------------------------------------------------------------------
+function dragElement(elmnt) {
+  var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+  if (document.getElementById(elmnt.id + "header")) {
+    /* if present, the header is where you move the DIV from:*/
+    document.getElementById(elmnt.id + "header").onmousedown = dragMouseDown;
+  } else {
+    /* otherwise, move the DIV from anywhere inside the DIV:*/
+    elmnt.onmousedown = dragMouseDown;
+  }
+
+  function dragMouseDown(e) {
+    e = e || window.event;
+    e.preventDefault();
+    // get the mouse cursor position at startup:
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    document.onmouseup = closeDragElement;
+    // call a function whenever the cursor moves:
+    document.onmousemove = elementDrag;
+  }
+
+  function elementDrag(e) {
+    e = e || window.event;
+    e.preventDefault();
+    // calculate the new cursor position:
+    pos1 = pos3 - e.clientX;
+    pos2 = pos4 - e.clientY;
+    pos3 = e.clientX;
+    pos4 = e.clientY;
+    // set the element's new position:
+    elmnt.style.top = (elmnt.offsetTop - pos2) + "px";
+    elmnt.style.left = (elmnt.offsetLeft - pos1) + "px";
+  }
+
+  function closeDragElement() {
+    /* stop moving when mouse button is released:*/
+    document.onmouseup = null;
+    document.onmousemove = null;
+  }
+}
+
+  //TERMINAL CODE --------------------------------------------------------------------------------------------------------------------------------
+
+  /*
+    
+    commands:
+    "my location"
+    - return location
+    "go to "
+    - set location
+    - update location log
+    "list files"
+    - get array
+    - split array by ;
+    - print each one spaced out
+    "create file "
+    - append filename in file array at end of string
+    - add div with image of folder, with file name under it
+    - create content box with empty value
+    "create directory "
+    - create a 
+    "write " + " into file "
+    "read file "
+   */
+
+    var files = [];
+    files[1] = "; hello; why; doesnt; this; work";
+    var loc = 1;
+    var content = [];
+    function command(input) {
+        var input = document.getElementById('input').value;
+        if (input.search("pwd")>-1) {
+            pwd();
+        }
+        if (input.search("go ")>-1) {
+            cd(input);
+        }
+        if (input.search("list")>-1) {
+            ls();
+        }
+        if (input.search("new ")>-1) {
+            touch(input);
+        }
+        if (input.search("remove ")>-1) {
+            rm(input);
+        }
+        if (input.search("write ")>-1) {
+            echo(input);
+        }
+        if (input.search("read ")>-1) {
+            cat(input);
+        }
+    }
+    function pwd() {
+        output("loc_now =  " + loc);
+    }
+    function cd(input) {
+        loc = parseInt(input.replace("go ",""),10);
+        output("loc_new = " + loc);
+    }
+    function ls() {
+        /*var filenames = files[loc].toString().split("; ");
+        */
+        var strout = "";
+        for (i = 0; i < document.getElementsByClassName(loc).length; i++) {
+            strout = strout+document.getElementsByClassName(loc).item(i).id.toString()+ " ";
+        }
+        output(strout);
+    //    output(strout);
+    }
+    function touch(input) {
+        var name = input.replace("new ","");
+        /*
+        if (files[loc] == null) {
+            files[loc] = "; " + name;
+        } else {
+        files[loc] = files[loc].toString().concat("; " + name);
+        }*/
+        var dontrun = false;
+        for (i = 0; i < document.getElementsByClassName(loc).length; i++) {
+            if (document.getElementsByClassName(loc).item(i).id.toString() == name) {
+                dontrun = true;
+            }
+        }
+        if (!dontrun) {
+            var e = document.createElement("H3");               // Create a <p> element
+            e.innerHTML = "["+loc+"] "+name;
+            e.id = name;
+            e.classList.add(loc);
+            e.classList.add("file");
+            document.body.appendChild(e);
+            document.getElementById(name).style.color = white;
+            output("made new file " +name+" at loc " + loc);
+        } else {
+            output("a file named "+ name+" at location "+loc+" already exists");
+        } 
+    
+    }
+    function rm(input) {
+        var name = input.replace("remove ","");
+        document.getElementById(name).remove();
+        content[name] = null;
+        /*
+        if (files[loc].search(name)>-1) {    
+            var filesect = "; " + name;
+            files[loc] = files[loc].replace(filesect,"");
+            output("removed file " + name + " at loc " + loc);
+        } else {
+            output("command failed");*/
+    }
+    
+    function echo(input) {
+        var name = input.replace("write ","");
+        var data = name.split(" on ");
+        var fileexists = false;
+        for (i = 0; i < document.getElementsByClassName(loc).length; i++) {
+            if (document.getElementsByClassName(loc).item(i).id.toString() == data[1]) {
+                fileexists = true;
+            }
+        }
+        if (fileexists) {
+            content[data[1]] = data[0];
+            output("wrote " + content[data[1]] + " to " + data[1] + " at location "+ loc);
+        } else {
+            output("a file named " +data[1]+" at location "+loc+" does not exist");
+        }
+
+    }
+    function cat(input) {
+        var name = input.replace("read ","");
+        output(content[name]);
+    }
+    /*var file = [];
+    var content = [];
+    var loc = 1;
+    function command() {
+        var input = document.getElementById('input').value;
+        function parseLoc(loc) {
+            locarr = loc.split("");
+        }
+        function touchFile(name, loc) {
+            file[loc] = name;
+            var para = document.createElement("P");               // Create a <p> element
+            para.innerHTML = "\nlocation: "+loc+"\nname: "+name+"\ncontent: "+content[loc];
+            para.id = name;
+            document.body.appendChild(para);     
+        }
+        function echoFile(name, content) {
+            if ((file[loc]!=null) {
+
+            }
+        }
+        if (input.search('touch')>-1) {
+            var newstr = input.replace('touch ','');
+            touchFile(newstr, loc);
+        }
+        if (input.search('echo')>-1) {
+            var str1 = input.replace('echo ','');
+            var arr1 = str1.split(' >> ');
+            var contents = arr1[0];
+            var filename = arr1[1];
+            echoFile(filename, contents)
+            }*/
+        /*
+        //pwd 
+        if (input === 'pwd') {
+            output(loc);
+        }
+        //cd
+        if (input.search('cd')>-1) {
+            input = input.replace('cd ','');
+            var newint = parseInt(input);
+            loc = newint;
+            output('');
+        }
+        //ls
+        if (input ==='ls') {
+            output(file[loc]);
+        }
+        //touch
+        if (input.search('touch')>-1) {
+            var newstr = input.replace('touch ','');
+            if ((file[loc] == null) || (file[loc] == 'undefined')) {
+                file[loc] = newstr; 
+                output('');               
+            } else {
+                output('a file already exists at this location');
+            }
+        }
+        //rm
+        if (input.search('rm')>-1) {
+            var newstr = input.replace('rm ','');
+            if ((file[loc] == null) || (file[loc] == 'undefined')) {
+                output('no file exists at this location');              
+            } else if (newstr != file[loc]) {
+                output('file does not exist at this location');
+            } else {
+                file[loc] = 'undefined'; 
+                output(''); 
+            }
+        }
+        //echo
+        if (input.search('echo')>-1) {
+            var str1 = input.replace('echo ','');
+            var arr1 = str1.split(' >> ');
+            var contents = arr1[0];
+            var filename = arr1[1];
+            if ((file[loc] == null) || (file[loc] == 'undefined')) {
+                output('no file exists at this location');              
+            } else if (filename != file[loc]) {
+                output('file does not exist at this location');
+            } else {
+                content[loc] = contents;
+                output('');
+            }
+
+        }
+        //cat 
+        if (input.search("cat")>-1) {
+            var newstr = input.replace('cat ','');
+            if (newstr == file[loc]) {
+                output(content[loc]);
+            } else {
+                output('file does not exist at this location')
+            }
+        }
+        // print the location with every move
+        document.getElementById("location").innerHTML = loc;
+        // print the file name at location
+        document.getElementById("fileatloc").innerHTML = file[loc];
+        // print the file at location
+        if (file[loc]!=null) {
+        document.getElementById("filecontent").innerHTML = content[loc];
+        } else {
+            document.getElementById("filecontent").innerHTML = null;
+        } */
+
+    //}
+
+    function output(str) {
+        document.getElementById('output').innerHTML = str;
+    }
+
+
+
+</script>
+
+</body>
+</html>
