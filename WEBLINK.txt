@@ -1,3 +1,0 @@
-https://terminal2.netlify.app
-
-copy the above into your browser url
